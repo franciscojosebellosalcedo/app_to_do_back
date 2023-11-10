@@ -6,7 +6,12 @@ export const saveBoard=async (req:Request, res:Response)=>{
     try {
         const data=req.body;
         const newBoard=new Board({...data});
-        const boardCreated=await (await newBoard.save()).populate(["workArea","workArea.members"]);
+        const boardCreated=await (await newBoard.save()).populate([
+            {
+                path:"workArea",
+                populate:{path:"members"}
+            }
+        ]);
         if(!boardCreated){
             return res.status(400).json(responseHttp(400,false,"Error al crear el tablero"));
         }
@@ -18,7 +23,12 @@ export const saveBoard=async (req:Request, res:Response)=>{
 
 export const getAllBoards=async (req:Request, res:Response )=>{
     try{
-        const allBoards=await Board.find().populate(["workArea"]);
+        const allBoards=await Board.find().populate([
+            {
+                path:"workArea",
+                populate:{path:"members"}
+            }
+        ]);
         return res.status(200).json(responseHttp(200,true,"Todos los tableros",allBoards));
     }catch(error){
         return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));
@@ -28,7 +38,12 @@ export const getAllBoards=async (req:Request, res:Response )=>{
 export const getOneBoard=async (req:Request, res:Response)=>{
     try{
         const id =req.params.id;
-        const boardFound=await Board.findOne({_id:id}).populate(["workArea"]);
+        const boardFound=await Board.findOne({_id:id}).populate([
+            {
+                path:"workArea",
+                populate:{path:"members"}
+            }
+        ]);
         return res.status(200).json(responseHttp(200,true,"Tablero encontrado",boardFound));
     }catch(error){
         return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));
@@ -40,7 +55,12 @@ export const updateBoard= async (req:Request, res:Response)=>{
         const id=req.params.id;
         const newData=req.body;
         await Board.updateOne({_id:id},{...newData});
-        const boardUpdated=await Board.findOne({_id:id}).populate(["workArea"]);
+        const boardUpdated=await Board.findOne({_id:id}).populate([
+            {
+                path:"workArea",
+                populate:{path:"members"}
+            }
+        ]);
         console.log(boardUpdated)
         return res.status(200).json(responseHttp(200,true,"Tablero editado",boardUpdated));
     }catch(error){

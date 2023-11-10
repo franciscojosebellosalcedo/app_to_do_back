@@ -57,7 +57,20 @@ export const deleteList=async (req:Request,res:Response)=>{
 
 export const getAllList=async (req:Request,res:Response)=>{
     try{
-        const allList=await List.find().populate(["board","cards"]);
+        const allList=await List.find().populate([
+            {
+              path: 'board',
+              populate: {
+                path: 'workArea',
+                populate: { path: 'members' }
+              }
+            },
+            {
+              path: 'cards',
+              populate: [{ path: 'labels' }, { path: 'members' }]
+            }
+          ]);
+
         return res.status(200).json(responseHttp(200,true,"Todas las listas",allList));
     }catch(error){
         return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));
