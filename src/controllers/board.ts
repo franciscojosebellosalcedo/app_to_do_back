@@ -9,7 +9,7 @@ export const saveBoard=async (req:Request, res:Response)=>{
         const boardCreated=await (await newBoard.save()).populate([
             {
                 path:"workArea",
-                populate:{path:"members"}
+                populate:[{path:"members"},{path:"user"}]
             }
         ]);
         if(!boardCreated){
@@ -26,7 +26,7 @@ export const getAllBoards=async (req:Request, res:Response )=>{
         const allBoards=await Board.find().populate([
             {
                 path:"workArea",
-                populate:{path:"members"}
+                populate:[{path:"members"},{path:"user"}]
             }
         ]);
         return res.status(200).json(responseHttp(200,true,"Todos los tableros",allBoards));
@@ -41,7 +41,7 @@ export const getOneBoard=async (req:Request, res:Response)=>{
         const boardFound=await Board.findOne({_id:id}).populate([
             {
                 path:"workArea",
-                populate:{path:"members"}
+                populate:[{path:"members"},{path:"user"}]
             }
         ]);
         return res.status(200).json(responseHttp(200,true,"Tablero encontrado",boardFound));
@@ -58,10 +58,9 @@ export const updateBoard= async (req:Request, res:Response)=>{
         const boardUpdated=await Board.findOne({_id:id}).populate([
             {
                 path:"workArea",
-                populate:{path:"members"}
+                populate:[{path:"members"},{path:"user"}]
             }
         ]);
-        console.log(boardUpdated)
         return res.status(200).json(responseHttp(200,true,"Tablero editado",boardUpdated));
     }catch(error){
         return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));

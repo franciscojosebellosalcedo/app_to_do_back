@@ -16,7 +16,11 @@ const cardSchema=new mongoose.Schema({
     labels:[{
         type:mongoose.Schema.Types.ObjectId,
         ref: "Label"
-    }]
+    }],
+    list:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref: "List"
+    }
 },{timestamps:true});
 
 const Card=mongoose.model("Card",cardSchema);

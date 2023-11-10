@@ -8,11 +8,7 @@ const listSchema=new mongoose.Schema({
     board:{
         type:mongoose.Schema.Types.ObjectId,
         ref: "Board"
-    },
-    cards:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref: "Card"
-    }],
+    }
 },{timestamps:true});
 
 const List=mongoose.model("List",listSchema);

@@ -7,7 +7,15 @@ export const saveList=async (req:Request,res:Response)=>{
     try {
         const data=req.body;
         const newList=new List({...data});
-        const listCreated=await (await newList.save()).populate(["board","cards"]);
+        const listCreated=await (await newList.save()).populate([
+            {
+                path:"board",
+                populate: {
+                    path: 'workArea',
+                    populate:[ { path: 'members' },{ path: 'user' }]
+                }
+            }
+        ]);
         if(!listCreated){
             return res.status(400).json(responseHttp(400,false,"Error al crear la lista"));
         }
@@ -22,7 +30,15 @@ export const updateList=async (req:Request,res:Response)=>{
         const id=req.params.id;
         const newData=req.body;
         await List.updateOne({_id:id},{...newData});
-        const listUpdated=await List.findOne({_id:id}).populate(["board","cards"]);
+        const listUpdated=await List.findOne({_id:id}).populate([
+            {
+                path:"board",
+                populate: {
+                    path: 'workArea',
+                    populate:[ { path: 'members' },{ path: 'user' }]
+                }
+            }
+        ]);
         if(!listUpdated){
             return res.status(400).json(responseHttp(400,false,"Error al editar la lista"));
         }
@@ -35,7 +51,15 @@ export const updateList=async (req:Request,res:Response)=>{
 export const getOneList=async (req:Request,res:Response)=>{
     try{
         const id=req.params.id;
-        const listFound=await List.findOne({_id:id}).populate(["board","cards"]);
+        const listFound=await List.findOne({_id:id}).populate([
+            {
+                path:"board",
+                populate: {
+                    path: 'workArea',
+                    populate:[ { path: 'members' },{ path: 'user' }]
+                }
+            }
+        ]);
         return res.status(200).json(responseHttp(200,true,"Lista encontrada",listFound));
     }catch(error){
         return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));
@@ -59,17 +83,13 @@ export const getAllList=async (req:Request,res:Response)=>{
     try{
         const allList=await List.find().populate([
             {
-              path: 'board',
-              populate: {
-                path: 'workArea',
-                populate: { path: 'members' }
-              }
-            },
-            {
-              path: 'cards',
-              populate: [{ path: 'labels' }, { path: 'members' }]
+                path:"board",
+                populate: {
+                    path: 'workArea',
+                    populate:[ { path: 'members' },{ path: 'user' }]
+                }
             }
-          ]);
+        ]);
 
         return res.status(200).json(responseHttp(200,true,"Todas las listas",allList));
     }catch(error){
