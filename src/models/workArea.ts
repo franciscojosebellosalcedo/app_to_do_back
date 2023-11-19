@@ -15,6 +15,9 @@ const workAreaSchema=new mongoose.Schema({
     description:{
         type:String,
     },
+    boards:{
+        type:[]
+    },
     members:[{
         type:mongoose.Schema.ObjectId,
         ref: 'User'

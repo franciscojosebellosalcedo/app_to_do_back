@@ -4,15 +4,43 @@ import User from "../models/user";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 dotenv.config();
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
+export const getNewAccessToken=async (req:Request,res:Response)=>{
+    try{
+        const headers=req.headers;
+        const parts=(headers["access-token"] as string).split(" ");
+        if(parts[1]!=="bearer"){
+            const refressToken=parts[1];
+            jwt.verify(refressToken,(process.env.SECRET_REFRESS_TOKEN as string),async (error,data)=>{
+                if(error){
+                    return res.status(400).json(responseHttp(400,false,"Token no válido"));
+                }
+                const idUser=Object(data)._id;
+                const userFound=await User.findOne({_id:idUser});
+                if(userFound){
+                    const dataToken={email:userFound.email,_id:userFound._id};
+                    const newAccessToken=jwt.sign(dataToken,(process.env.SECRET_ACCESS_TOKEN as string));
+                    const newRefressToken=jwt.sign(dataToken,(process.env.SECRET_REFRESS_TOKEN as string));
+                    userFound.token=newAccessToken;
+                    await userFound.save();
+                    return res.status(200).json(responseHttp(200,true,"",{user:dataToken,accessToken:newAccessToken,refressToken:newRefressToken}));
+                }
+            });
+        }else{
+            return res.status(400).json(responseHttp(400,false,"Token no válido"));
+        }
+    }catch(error){
+        return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));
+    }
+}
 
 export const userLogin=async (req:Request,res:Response)=>{
     try{
         const data=req.body;
         const userFound=await User.findOne({email:data.email});
         if(!userFound){
-            return res.status(400).json(responseHttp(400,false,"Usuario no registrado"));
+            return res.status(400).json(responseHttp(400,false,"Correo o contraseña no valida"));
         }
         const isPasswordValid=await bcrypt.compare(data.password,(userFound?.password as string));
         if(!isPasswordValid){
@@ -20,6 +48,8 @@ export const userLogin=async (req:Request,res:Response)=>{
         }
         const dataUser={email:userFound.email,_id:userFound._id};
         const accessToken=jwt.sign(dataUser,process.env.SECRET_ACCESS_TOKEN as string,{algorithm:"HS256"});
+        userFound.token=accessToken;
+        userFound.save();
         const refressToken=jwt.sign(dataUser,process.env.SECRET_REFRESS_TOKEN as string,{algorithm:"HS256"});
         return res.status(200).json(responseHttp(200,true,"Credenciales validas",{user:dataUser,refressToken,accessToken}));
     }catch(error){
@@ -44,7 +74,7 @@ export const saveUser=async (req:Request,res:Response)=>{
             if(!newUser){
                 return res.status(400).json(responseHttp(400,false,"No se pudo crear el usuario"));
             }
-            return res.status(400).json(responseHttp(200,true,"Usuario creado correctamente",newUser));
+            return res.status(200).json(responseHttp(200,true,"Usuario creado correctamente",{email:newUser.email,_id:newUser._id}));
         }
         return res.status(400).json(responseHttp(400,false,"Correo electronico no valido"));
     } catch (error) {
