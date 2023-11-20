@@ -56,7 +56,7 @@ export const getOneWorkArea=async (req:Request,res:Response)=>{
         const idUser=req.params.idUser;
         const workAreaFound=await WorkArea.findOne({_id:id,user:idUser}).populate(["user","members"]);
        if(workAreaFound){
-            const boards:any= await Board.find({workArea:id});
+            const boards:any= await Board.find({workArea:id}).populate(["workArea"]);
             workAreaFound["boards"]=boards;
        }
         return res.status(200).json(responseHttp(200,true,"Area de trabajo encontrada",workAreaFound));
@@ -72,7 +72,7 @@ export const getAllWorksArea=async (req:Request,res:Response)=>{
         const worksAreaList:any[]=[];
         for (const workArea of allWorksArea) {
             const idWorArea=workArea._id.toString();
-            const boards:any= await Board.find({workArea:idWorArea});
+            const boards:any= await Board.find({workArea:idWorArea}).populate(["workArea"]);
             workArea["boards"]=boards;
             worksAreaList.push(workArea);
         }

@@ -1,6 +1,22 @@
 import Board from "../models/board";
 import { Request, Response } from "express";
 import {responseHttp } from "../helpers/helpers";
+import WorkArea from "../models/workArea";
+
+export const getAllBoardOnlyFavorite=async (req:Request, res:Response)=>{
+    try {
+        const idUser=req.params.idUser;
+        const allWorkAreas=await WorkArea.find({user:idUser});
+        const allBoardsFavorite=[];
+        allWorkAreas.map(async(workArea:any)=>{
+            const boardsFavorite=await Board.find({workArea:workArea?._id.toString(),isFavorite:true});
+            allBoardsFavorite.push(boardsFavorite);
+        });
+        return res.status(200).json(responseHttp(200,true,"Todos los tableros favoritos"));
+    } catch (error) {
+        return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));
+    }
+}
 
 export const saveBoard=async (req:Request, res:Response)=>{
     try {
@@ -52,9 +68,10 @@ export const getOneBoard=async (req:Request, res:Response)=>{
 
 export const updateBoard= async (req:Request, res:Response)=>{
     try{
-        const id=req.params.id;
+        const id=req.params.idBoard;
+        const idWorkArea=req.params.idWorkArea;
         const newData=req.body;
-        await Board.updateOne({_id:id},{...newData});
+        await Board.updateOne({_id:id,workArea:idWorkArea},{...newData});
         const boardUpdated=await Board.findOne({_id:id}).populate([
             {
                 path:"workArea",
