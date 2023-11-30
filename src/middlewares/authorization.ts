@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import {  responseHttp} from "../helpers/helpers";
 import jwt from "jsonwebtoken";
-import User from "../models/user";
 
 export const checkAuthorization=async (req:Request,res:Response,next:NextFunction)=>{
     try {

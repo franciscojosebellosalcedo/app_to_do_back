@@ -4,7 +4,7 @@ import User from "../models/user";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 dotenv.config();
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 export const getNewAccessToken=async (req:Request,res:Response)=>{
     try{
@@ -19,7 +19,7 @@ export const getNewAccessToken=async (req:Request,res:Response)=>{
                 const idUser=Object(data)._id;
                 const userFound=await User.findOne({_id:idUser});
                 if(userFound){
-                    const dataToken={email:userFound.email,_id:userFound._id};
+                    const dataToken={email:userFound?.email,_id:userFound?._id,biography:userFound?.biography};
                     const newAccessToken=jwt.sign(dataToken,(process.env.SECRET_ACCESS_TOKEN as string));
                     const newRefressToken=jwt.sign(dataToken,(process.env.SECRET_REFRESS_TOKEN as string));
                     userFound.token=newAccessToken;
@@ -46,7 +46,7 @@ export const userLogin=async (req:Request,res:Response)=>{
         if(!isPasswordValid){
             return res.status(400).json(responseHttp(400,false,"Correo o contraseña no valida"));
         }
-        const dataUser={email:userFound.email,_id:userFound._id};
+        const dataUser={email:userFound?.email,_id:userFound._id,biography:userFound?.biography};
         const accessToken=jwt.sign(dataUser,process.env.SECRET_ACCESS_TOKEN as string,{algorithm:"HS256"});
         userFound.token=accessToken;
         userFound.save();
@@ -109,14 +109,23 @@ export const updateUser= async (req:Request,res:Response)=>{
     try{
         const id=req.params.id;
         const dataNew=req.body;
-        if(dataNew.password){
-            dataNew.password=await bcrypt.hash(dataNew.password,8);
+        const userFound=await User.findOne({_id:id});
+        if(userFound && userFound?.password){
+            if(dataNew.password){
+                const compareCurrentpassword=await bcrypt.compare(dataNew.currentPassword,userFound?.password);
+                if(!compareCurrentpassword){
+                    return res.status(400).json(responseHttp(400,false,"Contraseña actual incorrecta"));
+                }
+                dataNew.password=await bcrypt.hash(dataNew.password,8);
+            }
+            delete dataNew.currentPassword;
+            const responseUpdated=await User.findOneAndUpdate({_id:id},{...dataNew});
+            if(responseUpdated){
+                const userUpdate=await User.findOne({_id:id});
+                return res.status(200).json(responseHttp(200,true,"Datos actualizados",{_id:userUpdate?._id,email:userUpdate?.email,biography:userUpdate?.biography}));
+            }
+            return res.status(400).json(responseHttp(400,false,"Error al actualizar el usuario"));
         }
-        const responseUpdated=await User.updateOne({_id:id},{...dataNew});
-        if(responseUpdated.modifiedCount>0){
-            return res.status(200).json(responseHttp(200,true,"Usuario actualizado"));
-        }
-       return res.status(400).json(responseHttp(400,false,"Error al actualizar el usuario"));
     }catch(error){
        return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));
     }

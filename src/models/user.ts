@@ -9,6 +9,10 @@ const userSchema=new mongoose.Schema({
     },
     token:{
         type:String,
+    },
+    biography:{
+        type:String,
+        trim:true
     }
 },{timestamps:true});
 
