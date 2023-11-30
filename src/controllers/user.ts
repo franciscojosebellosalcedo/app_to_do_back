@@ -22,7 +22,6 @@ export const getNewAccessToken=async (req:Request,res:Response)=>{
                     const dataToken={email:userFound?.email,_id:userFound?._id,biography:userFound?.biography};
                     const newAccessToken=jwt.sign(dataToken,(process.env.SECRET_ACCESS_TOKEN as string));
                     const newRefressToken=jwt.sign(dataToken,(process.env.SECRET_REFRESS_TOKEN as string));
-                    userFound.token=newAccessToken;
                     await userFound.save();
                     return res.status(200).json(responseHttp(200,true,"",{user:dataToken,accessToken:newAccessToken,refressToken:newRefressToken}));
                 }
@@ -48,7 +47,6 @@ export const userLogin=async (req:Request,res:Response)=>{
         }
         const dataUser={email:userFound?.email,_id:userFound._id,biography:userFound?.biography};
         const accessToken=jwt.sign(dataUser,process.env.SECRET_ACCESS_TOKEN as string,{algorithm:"HS256"});
-        userFound.token=accessToken;
         userFound.save();
         const refressToken=jwt.sign(dataUser,process.env.SECRET_REFRESS_TOKEN as string,{algorithm:"HS256"});
         return res.status(200).json(responseHttp(200,true,"Credenciales validas",{user:dataUser,refressToken,accessToken}));
