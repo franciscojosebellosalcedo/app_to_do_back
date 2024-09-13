@@ -10,10 +10,6 @@ const itemSchema=new mongoose.Schema({
         type:Boolean,
         default:false
     },
-    members:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref: "User"
-    }],
     checkList:{
         type:mongoose.Schema.Types.ObjectId,
         ref: "CheckList"

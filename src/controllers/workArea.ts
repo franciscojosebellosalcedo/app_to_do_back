@@ -6,26 +6,11 @@ import List from "../models/list";
 import Card from "../models/card";
 import CheckList from "../models/checkList";
 
-export const addNewMember=async(req:Request,res:Response)=>{
-    try{
-        const id=req.params.id;
-        const data=req.body;
-        const workAreaFound=await WorkArea.findOne({_id:id});
-        const membersWorkArea=workAreaFound?.members;
-        membersWorkArea?.push(data.member);
-        await WorkArea.updateOne({_id:id},{members:membersWorkArea});
-        const workAreaUpdated=await WorkArea.findOne({_id:id}).populate(["user","members"]);
-        return res.status(200).json(responseHttp(200,true,"Miembro agregado correctamente",workAreaUpdated));
-    }catch(error){
-        return res.status(400).json(responseHttp(400,false,"Se produjo un error en el servidor"));
-    }
-}
-
 export const saveWorkArea=async (req:Request,res:Response)=>{
     try{
         const data=req.body;
         const newWorkArea=new WorkArea({...data});
-        const workAreaCreated= await (await newWorkArea.save()).populate(['user','members']);
+        const workAreaCreated= await (await newWorkArea.save()).populate(['user']);
         if(!workAreaCreated){
             return res.status(400).json(responseHttp(400,false,"Error al crear el area de trabajo"));
         }
@@ -41,7 +26,7 @@ export const updateWorkArea=async (req:Request,res:Response)=>{
         const newData=req.body;
         const responseUpdated=await WorkArea.updateOne({_id:id},{...newData});
         if(responseUpdated.modifiedCount>0){
-            const workAreaUpdated=await WorkArea.findOne({_id:id}).populate(["user","members"]);
+            const workAreaUpdated=await WorkArea.findOne({_id:id}).populate(["user"]);
             return res.status(200).json(responseHttp(200,true,"Area de trabajo actualizado",workAreaUpdated));
         }
         return res.status(400).json(responseHttp(400,false,"Error al actualizar el area de trabajo"));
@@ -54,7 +39,7 @@ export const getOneWorkArea=async (req:Request,res:Response)=>{
     try{
         const id=req.params.id;
         const idUser=req.params.idUser;
-        const workAreaFound=await WorkArea.findOne({_id:id,user:idUser}).populate(["user","members"]);
+        const workAreaFound=await WorkArea.findOne({_id:id,user:idUser}).populate(["user"]);
        if(workAreaFound){
             const boards:any= await Board.find({workArea:id}).populate(["workArea"]);
             workAreaFound["boards"]=boards;
@@ -68,7 +53,7 @@ export const getOneWorkArea=async (req:Request,res:Response)=>{
 export const getAllWorksArea=async (req:Request,res:Response)=>{
     try{
         const idUser=req.params.idUser;
-        const allWorksArea=await WorkArea.find({user:idUser}).populate(['members','user']).sort({createdAt:-1});
+        const allWorksArea=await WorkArea.find({user:idUser}).populate(['user']).sort({createdAt:-1});
         const worksAreaList:any[]=[];
         for (const workArea of allWorksArea) {
             const idWorArea=workArea._id.toString();

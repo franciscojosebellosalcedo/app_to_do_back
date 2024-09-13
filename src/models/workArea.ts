@@ -18,10 +18,6 @@ const workAreaSchema=new mongoose.Schema({
     boards:{
         type:[]
     },
-    members:[{
-        type:mongoose.Schema.ObjectId,
-        ref: 'User'
-    }]
 },{timestamps:true});
 
 const WorkArea= mongoose.model("WorkArea",workAreaSchema);
